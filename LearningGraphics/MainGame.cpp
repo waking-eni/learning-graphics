@@ -1,24 +1,16 @@
 #include "MainGame.h"
+#include "Errors.h"
 
 #include <iostream>
 #include <string>
 #include <GL/glew.h>
 
-void fatal_error(std::string error_string)
-{
-	std::cout << error_string << std::endl;
-	std::cout << "Enter any key to quit...";
-	int tmp;
-	std::cin >> tmp;
-	SDL_Quit();
-}
-
 MainGame::MainGame()
 {
 	_window = nullptr;
-	_screen_width = 500;
-	_screen_height = 300;
-	GameState _game_state = GameState::PLAY;
+	_screenWidth = 500;
+	_screenHeight = 300;
+	GameState _gameState = GameState::PLAY;
 }
 
 MainGame::~MainGame()
@@ -28,19 +20,19 @@ MainGame::~MainGame()
 
 void MainGame::run()
 {
-	init_systems();
+	initSystems();
 	_sprite.init(-1.0f, -1.0f, 1.0f, 1.0f);
 
-	game_loop();
+	gameLoop();
 }
 
-void MainGame::init_systems()
+void MainGame::initSystems()
 {
 	//Initialize SDL
 	SDL_Init(SDL_INIT_EVERYTHING);
 
 	_window = SDL_CreateWindow("Game Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		_screen_width, _screen_height, SDL_WINDOW_OPENGL);
+		_screenWidth, _screenHeight, SDL_WINDOW_OPENGL);
 
 	if (_window == nullptr) {
 		fatal_error("SDL Window could not be created!");
@@ -67,23 +59,31 @@ void MainGame::init_systems()
 	// set the background colour
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+	initShaders();
+
 }
 
-void MainGame::game_loop()
+void MainGame::initShaders() {
+	_colorProgram.compileShaders("../shaders/colorShading.vert.txt", "../shaders/colorShading.frag.txt");
+	_colorProgram.addAttribute("vertexPosition");
+	_colorProgram.linkShaders();
+}
+
+void MainGame::gameLoop()
 {
-	while (_game_state != GameState::EXIT) {
-		process_input();
+	while (_gameState != GameState::EXIT) {
+		processInput();
 		drawGame();
 	}
 }
 
-void MainGame::process_input()
+void MainGame::processInput()
 {
 	SDL_Event evnt;
 	while (SDL_PollEvent(&evnt)) {
 		switch (evnt.type) {
 		case SDL_QUIT:
-			_game_state = GameState::EXIT;
+			_gameState = GameState::EXIT;
 			break;
 		case SDL_MOUSEMOTION:
 			std::cout << evnt.motion.x << " " << evnt.motion.y << std::endl;
@@ -98,7 +98,9 @@ void MainGame::drawGame() {
 	// clear the color and depth buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	_sprite.draw();
+	_colorProgram.use();
+	_sprite.draw(); // draw the sprite
+	_colorProgram.unuse();
 
 	// swap the buffer and draw everything to the screen
 	SDL_GL_SwapWindow(_window);

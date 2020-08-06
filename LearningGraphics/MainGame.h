@@ -3,6 +3,7 @@
 #include <GL/glew.h>
 
 #include "Sprite.h"
+#include "GLSLProgram.h"
 
 enum class GameState { PLAY, EXIT };
 
@@ -18,13 +19,15 @@ protected:
 
 private:
 	SDL_Window* _window;
-	int _screen_width;
-	int _screen_height;
-	GameState _game_state;
+	int _screenWidth;
+	int _screenHeight;
+	GameState _gameState;
 	Sprite _sprite;
+	GLSLProgram _colorProgram;
 
-	void init_systems();
-	void game_loop();
-	void process_input();
+	void initSystems();
+	void initShaders();
+	void gameLoop();
+	void processInput();
 	void drawGame();
 };
